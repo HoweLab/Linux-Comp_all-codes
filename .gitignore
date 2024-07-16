@@ -1,3 +1,4 @@
 *.mat 
 *.png
 lily/FastLZeroSpikeInference
+*__pycache__*
