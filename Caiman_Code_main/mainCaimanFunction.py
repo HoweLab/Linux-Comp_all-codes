@@ -93,11 +93,18 @@ def runCaimanPipeline(fnames, paramDict, selectComponents = True, saveImages = T
         #Create a folder where our outputs will live
         folderDir = os.path.join(dataDir, 'caimanOuputs_' + timeStamp)
         caimanFolder = os.mkdir(folderDir)
+
+        # Get memmapfile path so we can use it and delete it after we used it
         mmap_inplace = False
         for file in dirFiles:
             if 'memmap' in file:
                 memMapFilePath = os.path.join(dataDir, file)
                 mmap_inplace = True
+        if not mmap_inplace:
+            # We still get the memmap file location even if 
+            # they are not stored in place. This way code down streams don't need 
+            # more conditional statements -LT 3/14/25
+            memMapFilePath = cnm1.mmap_file
 
         #create a logging file where we still basic info about the file/runtime etc
         logging.basicConfig(filename=os.path.join(folderDir,fileName[0:-4] + 'LogFile'), encoding='utf-8', level=logging.ERROR, force=True)
@@ -105,12 +112,8 @@ def runCaimanPipeline(fnames, paramDict, selectComponents = True, saveImages = T
         # %%capture
         #%% RE-RUN seeded CNMF on accepted patches to refine and perform deconvolution 
         # startTimeSecondsPass = t.start()
-        if mmap_inplace:
-            Yr, dims, T = cm.load_memmap(memMapFilePath)
-        else:
-            # older version of caiman save memmap file in the current directory, newer's don't
-            # I suspect they all have the field mmap_file but Idk so I'm just being careful here -LT 02/13/25
-            Yr, dims, T = cm.load_memmap(cnm1.mmap_file)
+        Yr, dims, T = cm.load_memmap(memMapFilePath)
+
         images = np.reshape(Yr.T, [T] + list(dims), order='F')         
         #running into issues with memory when we are calculating the local correlations image on somewhat larger tifs
         #I think I need to figure out how to appropriately run caiman by chunking and having the results be combined at the end.
@@ -169,15 +172,10 @@ def runCaimanPipeline(fnames, paramDict, selectComponents = True, saveImages = T
         log_files = glob.glob('*_LOG_*')
         for log_file in log_files:
             os.remove(log_file)
-
-        if mmap_inplace:
-            # if mmap file saved inplace then we mnually remove them from the 
-            # data dir b.c its large.
-            os.remove(memMapFilePath)
-        else:
-            # No mmap file found inplace, Caiman should take care of it
-            print(f"No memMapFile is found inplace of dir: %s, caiman probably took care if it."%(dataDir))
-
+        # remove memory map files since they are huge, and strikingly although caiman put them in a folder
+        # called 'temp' in 'caiman_data' they DONT ACTUALLY REMOVE THEM
+        print(f"Trying to remove memmap file at location: %s."%(memMapFilePath))
+        os.remove(memMapFilePath)
         #save out the correlation image into the CNMF object so we don't have to remake it/remake the memmap when we want to do other stuff later.
         # cnm2.Cn = Cn
         #save the CNMF object as an h5
