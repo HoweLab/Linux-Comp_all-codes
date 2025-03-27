@@ -3,7 +3,6 @@ sudo bash
 mount -t cifs -o username=howelab,uid=1002,gid=1002,forceuid,forcegid //RKC-HOW-WD-0015.ad.bu.edu/Shared2Linux /mnt/SHARED
 mount -t cifs -o username=howelab,uid=1002,gid=1002,forceuid,forcegid //RKC-HOW-WD-0015.ad.bu.edu/Shared2Linux_BrennaFeb2022 /mnt/BrennaFeb2022Drive
 
-
 alias mount_drives=' mount -t cifs -o  username=howelab,uid=1002,gid=1002,forceuid,forcegid //RKC-HOW-WD-0015.ad.bu.edu/Shared2Linux /mnt/Brenna_Feb2023 && mount -t cifs -o username=howelab,uid=1002,gid=1002,forceuid,forcegid //RKC-HOW-WD-0015.ad.bu.edu/Shared2Linux_BrennaFeb2022 /mnt/BrennaFeb2022Drive' 
 
 
